@@ -32,9 +32,9 @@ def host_executor(config):
 def target_executor(config):
     tvm = config["storage_target_vm"]
     executor = RemoteExecutor(
-        target=tvm["target"],
+        host=tvm["host"],
         username=tvm["username"],
-        passowrd=tvm["password"],
+        password=tvm["password"],
         timeout=tvm["timeout"]
     )
     executor.connect()
@@ -42,7 +42,7 @@ def target_executor(config):
     executor.close()
 
 @pytest.fixture(scope="session", autouse=True)
-def storage_infrastructure_fixture(config, remote_executor):
+def storage_infrastructure_fixture(config, target_executor, host_executor):
     """
     [Target & Host] Session fixture handling end-to-end infracture setup
     and teardown automation for the storage fabric
@@ -53,14 +53,14 @@ def storage_infrastructure_fixture(config, remote_executor):
     target_ctrl = TargetController(
         executor=target_executor,
         target_iqn=sf["target_iqn"],
-        portal_ip=tvm["target"],
+        portal_ip=tvm["host"],
         portal_port=sf["portal_port"]
     )
 
     host_ctrl = HostController(
         executor=host_executor,
-        target_ip = tvm["target"],
-        portal_port=sf["portal_port"]
+        target_ip = tvm["host"],
+        target_port=sf["portal_port"]
     )
 
     logger.info("--- INFRACTURE SETUP: Provisioning Storage Across Dual Nodes ---")
